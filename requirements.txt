@@ -1,0 +1,11 @@
+pandas
+numpy
+PyYAML
+scikit-learn
+joblib
+matplotlib
+plotly
+streamlit
+ta
+MetaTrader5
+lightgbm

@@ -1,0 +1,32 @@
+app:
+  name: Gold AI Trading Bot
+  mode: paper
+  log_level: INFO
+
+market:
+  symbol: XAUUSDm
+  timeframe: M5
+  bars: 1000
+
+risk:
+  account_balance: 1000
+  risk_per_trade_pct: 1.0
+  fixed_lot: 0.01
+  use_auto_lot: true
+  max_open_positions: 1
+  max_daily_drawdown_pct: 5.0
+
+strategy:
+  min_confidence: 0.65
+  atr_period: 14
+  swing_lookback: 3
+  fvg_min_points: 20
+
+execution:
+  dry_run: true
+  deviation: 20
+  magic: 260512
+
+ml:
+  model_path: models/lightgbm_model.pkl
+  use_ml_filter: false
