@@ -3,10 +3,9 @@ from __future__ import annotations
 import pandas as pd
 
 
-# Features used by the meta-filter before adding the trade side.
-# Keep this list as the single source of truth for both dataset creation
-# and live/backtest inference.
-FEATURE_COLUMNS = [
+# Single source of truth for the meta-filter model input columns.
+# Keep HTF context here as ML features only; do not use them as hard filters.
+META_FEATURE_COLUMNS = [
     # price / volatility
     "return",
     "range",
@@ -37,9 +36,11 @@ FEATURE_COLUMNS = [
     "recent_htf_bearish_sweep",
     "recent_htf_bullish_bos",
     "recent_htf_bearish_bos",
+
+    # trade direction
+    "side",
 ]
 
-MODEL_FEATURE_COLUMNS = FEATURE_COLUMNS + ["side"]
 DROP_COLUMNS = ["target", "pnl", "r_multiple"]
 MIN_META_DATASET_ROWS = 100
 
@@ -52,6 +53,16 @@ def encode_htf_trend(value: object) -> int:
     }.get(str(value), 0)
 
 
+def encode_side(value: object) -> int:
+    if isinstance(value, str):
+        return {
+            "BUY": 1,
+            "SELL": -1,
+        }.get(value.upper(), 0)
+
+    return int(value) if pd.notna(value) else 0
+
+
 def normalize_meta_record(record: dict) -> dict:
     normalized = dict(record)
 
@@ -62,11 +73,15 @@ def normalize_meta_record(record: dict) -> dict:
     normalized["htf_trend"] = encode_htf_trend(
         normalized.get("htf_trend", "neutral")
     )
+    normalized["side"] = encode_side(normalized.get("side", 0))
+
+    for column in META_FEATURE_COLUMNS:
+        normalized.setdefault(column, 0)
 
     return normalized
 
 
 def build_meta_feature_record(row: pd.Series, signal: str) -> dict:
-    record = {col: row.get(col, 0) for col in FEATURE_COLUMNS}
+    record = {col: row.get(col, 0) for col in META_FEATURE_COLUMNS}
     record["side"] = 1 if signal == "BUY" else -1
     return normalize_meta_record(record)

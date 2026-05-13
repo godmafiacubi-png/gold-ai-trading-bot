@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import joblib
 
-from ml.meta_features import MODEL_FEATURE_COLUMNS, build_meta_feature_record
+from ml.meta_features import META_FEATURE_COLUMNS, normalize_meta_record
 
 
 @dataclass
@@ -240,8 +240,10 @@ class Backtester:
         if self.meta_model is None:
             return 1.0
 
-        record = build_meta_feature_record(row, signal)
-        x = pd.DataFrame([record], columns=MODEL_FEATURE_COLUMNS)
+        record = {col: row.get(col, 0) for col in META_FEATURE_COLUMNS}
+        record["side"] = 1 if signal == "BUY" else -1
+        record = normalize_meta_record(record)
+        x = pd.DataFrame([record])[META_FEATURE_COLUMNS]
         return float(self.meta_model.predict_proba(x)[0][1])
 
     def _simulate_trade(
