@@ -52,3 +52,18 @@ execution:
 ml:
   model_path: models/lightgbm_model.pkl
   use_ml_filter: false
+
+hybrid_ai:
+  enabled: true
+  # Optional trained model paths. If files are missing, the engine falls back to robust rules.
+  regime_model_path: models/regime_classifier.pkl
+  signal_model_path: models/hybrid_signal_scorer.pkl
+  rl_q_table_path: models/rl_execution_q_table.json
+  min_signal_score: 0.68
+  min_regime_confidence: 0.45
+  anomaly_lookback: 100
+  anomaly_z_threshold: 3.0
+  max_anomaly_score: 3.0
+  volatility_ewm_span: 20
+  base_sl_atr_mult: 1.5
+  base_tp_atr_mult: 3.0
