@@ -31,8 +31,8 @@ strategy:
   min_atr_pct: 0.0004
   max_atr_pct: 0.004
   use_quality_filter: true
-  min_body_atr_ratio: 0.15
-  min_rejection_wick_ratio: 0.12
+  min_body_atr_ratio: 0.10
+  min_rejection_wick_ratio: 0.08
   min_close_strength_sell: 0.50
   min_close_strength_buy: 0.50
   body_avg_period: 20
