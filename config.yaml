@@ -21,6 +21,28 @@ strategy:
   atr_period: 14
   swing_lookback: 3
   fvg_min_points: 20
+  use_fvg_retest: true
+  fvg_retest_lookback: 20
+  use_session_filter: true
+  allowed_sessions:
+    - london
+    - new_york
+  use_regime_filter: true
+  min_atr_pct: 0.0004
+  max_atr_pct: 0.004
+  use_quality_filter: true
+  min_body_atr_ratio: 0.15
+  min_rejection_wick_ratio: 0.12
+  min_close_strength_sell: 0.50
+  min_close_strength_buy: 0.50
+  body_avg_period: 20
+
+htf:
+  enabled: true
+  timeframe: H1
+  bars: 1000
+  swing_lookback: 3
+  premium_discount_lookback: 100
 
 execution:
   dry_run: true
