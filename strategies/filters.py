@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 
 
-def add_session_filter(df: pd.DataFrame) -> pd.DataFrame:
+def add_session_filter(df: pd.DataFrame, config: dict | None = None) -> pd.DataFrame:
     out = df.copy()
 
     time = pd.to_datetime(out["time"])
@@ -11,11 +11,31 @@ def add_session_filter(df: pd.DataFrame) -> pd.DataFrame:
 
     out["session"] = "other"
 
-    # ใช้เวลา server/broker ก่อน ยังไม่แปลง timezone
-    out.loc[(hour >= 7) & (hour < 11), "session"] = "london"
-    out.loc[(hour >= 12) & (hour < 17), "session"] = "new_york"
+    # Broker/server-time session map. Calibrate this later if broker time differs from UTC.
+    london = (hour >= 7) & (hour < 13)
+    new_york = (hour >= 13) & (hour < 22)
+    overlap = (hour >= 13) & (hour < 17)
 
-    out["session_allowed"] = out["session"].isin(["london", "new_york"])
+    out.loc[london, "session"] = "london"
+    out.loc[new_york, "session"] = "new_york"
+    out.loc[overlap, "session"] = "overlap"
+
+    if config is not None:
+        allowed_sessions = config.get("strategy", {}).get("allowed_sessions", [])
+        session_switches = config.get("sessions", {})
+
+        if not allowed_sessions:
+            allowed_sessions = []
+            if session_switches.get("london", True):
+                allowed_sessions.append("london")
+            if session_switches.get("new_york", True):
+                allowed_sessions.append("new_york")
+            if session_switches.get("overlap", True):
+                allowed_sessions.append("overlap")
+    else:
+        allowed_sessions = ["london", "new_york", "overlap"]
+
+    out["session_allowed"] = out["session"].isin(allowed_sessions)
 
     return out
 
@@ -43,7 +63,7 @@ def add_fvg_retest(df: pd.DataFrame, lookback: int = 20) -> pd.DataFrame:
     bearish_zones = []
 
     for i, row in out.iterrows():
-        # เก็บ FVG zone
+        # Store FVG zones.
         if bool(row.get("bullish_fvg")):
             bullish_zones.append({
                 "created_index": i,
@@ -63,8 +83,7 @@ def add_fvg_retest(df: pd.DataFrame, lookback: int = 20) -> pd.DataFrame:
         close = float(row["close"])
         open_ = float(row["open"])
 
-        # bullish FVG retest:
-        # price กลับมาแตะ zone แล้วปิด bullish rejection
+        # Bullish FVG retest: price touches zone and closes with bullish rejection.
         for zone in bullish_zones[-lookback:]:
             if i <= zone["created_index"]:
                 continue
@@ -76,8 +95,7 @@ def add_fvg_retest(df: pd.DataFrame, lookback: int = 20) -> pd.DataFrame:
                 out.at[i, "bullish_fvg_retest"] = True
                 break
 
-        # bearish FVG retest:
-        # price กลับมาแตะ zone แล้วปิด bearish rejection
+        # Bearish FVG retest: price touches zone and closes with bearish rejection.
         for zone in bearish_zones[-lookback:]:
             if i <= zone["created_index"]:
                 continue
