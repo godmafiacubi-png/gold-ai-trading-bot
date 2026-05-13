@@ -6,7 +6,7 @@ app:
 market:
   symbol: XAUUSDm
   timeframe: M5
-  bars: 1000
+  bars: 200000
 
 risk:
   account_balance: 1000
@@ -27,20 +27,26 @@ strategy:
   allowed_sessions:
     - london
     - new_york
+    - overlap
   use_regime_filter: true
   min_atr_pct: 0.0004
   max_atr_pct: 0.004
   use_quality_filter: true
-  min_body_atr_ratio: 0.10
-  min_rejection_wick_ratio: 0.08
+  min_body_atr_ratio: 0.05
+  min_rejection_wick_ratio: 0.05
   min_close_strength_sell: 0.50
   min_close_strength_buy: 0.50
   body_avg_period: 20
 
+sessions:
+  london: true
+  new_york: true
+  overlap: true
+
 htf:
   enabled: true
   timeframe: H1
-  bars: 1000
+  bars: 20000
   swing_lookback: 3
   premium_discount_lookback: 100
 
