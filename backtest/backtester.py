@@ -69,6 +69,7 @@ class Backtester:
         use_meta_filter: bool = False,
         meta_model_path: str = "models/meta_filter.pkl",
         meta_threshold: float = 0.55,
+        config: dict | None = None,
     ):
         self.initial_balance = float(initial_balance)
         self.risk_per_trade_pct = float(risk_per_trade_pct)
@@ -84,6 +85,10 @@ class Backtester:
         self.max_lot = float(max_lot)
         self.use_meta_filter = bool(use_meta_filter)
         self.meta_threshold = float(meta_threshold)
+        self.config = config or {}
+        strategy_config = self.config.get("strategy", {})
+        self.allow_buy = bool(strategy_config.get("allow_buy", True))
+        self.allow_sell = bool(strategy_config.get("allow_sell", True))
         self.meta_model = None
 
         if self.use_meta_filter:
@@ -215,14 +220,16 @@ class Backtester:
             return "NONE"
 
         bullish = (
-            bool(row.get("bullish_fvg_retest", False))
+            self.allow_buy
+            and bool(row.get("bullish_fvg_retest", False))
             and bool(row.get("bullish_bos", False))
             and bool(row.get("long_regime_ok", False))
             and bool(row.get("long_quality_ok", False))
         )
 
         bearish = (
-            bool(row.get("bearish_fvg_retest", False))
+            self.allow_sell
+            and bool(row.get("bearish_fvg_retest", False))
             and bool(row.get("bearish_bos", False))
             and bool(row.get("short_regime_ok", False))
             and bool(row.get("short_quality_ok", False))
