@@ -2,6 +2,7 @@ import yaml
 import pandas as pd
 
 from core.feature_engine import FeatureEngine
+from core.htf_context import HTFContextEngine
 from backtest.backtester import Backtester
 
 
@@ -36,6 +37,11 @@ def main():
 
     raw = pd.read_csv("data/history.csv")
     features = FeatureEngine(config).build(raw)
+
+    if config.get("htf", {}).get("enabled", False):
+        htf_raw = pd.read_csv("data/history_h1.csv")
+        htf_context = HTFContextEngine(config).build(htf_raw)
+        features = HTFContextEngine(config).merge_to_ltf(features, htf_context)
 
     folds = 3
     chunk_size = len(features) // folds

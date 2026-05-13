@@ -8,7 +8,7 @@ from core.feature_engine import FeatureEngine
 from core.htf_context import HTFContextEngine
 from backtest.backtester import Backtester
 
-from ml.meta_features import FEATURE_COLUMNS, normalize_meta_record
+from ml.meta_features import META_FEATURE_COLUMNS, normalize_meta_record
 
 
 def load_config() -> dict:
@@ -79,7 +79,10 @@ def main() -> None:
 
         record = {}
 
-        for col in FEATURE_COLUMNS:
+        for col in META_FEATURE_COLUMNS:
+            if col == "side":
+                continue
+
             record[col] = row.get(col, 0)
 
         record["side"] = trade["side"]
@@ -96,11 +99,6 @@ def main() -> None:
         raise RuntimeError(
             "Meta dataset is empty. Check signal logic/backtest trades."
         )
-
-    dataset["side"] = dataset["side"].map({
-        "BUY": 1,
-        "SELL": -1,
-    }).fillna(0)
 
     for col in dataset.columns:
         if dataset[col].dtype == "bool":

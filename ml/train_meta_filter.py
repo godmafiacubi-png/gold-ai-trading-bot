@@ -10,7 +10,7 @@ try:
 except Exception:
     LGBMClassifier = None
 
-from ml.meta_features import MIN_META_DATASET_ROWS, MODEL_FEATURE_COLUMNS
+from ml.meta_features import MIN_META_DATASET_ROWS, META_FEATURE_COLUMNS
 
 
 def main():
@@ -21,15 +21,15 @@ def main():
 
     if len(df) < MIN_META_DATASET_ROWS:
         raise RuntimeError(
-            f"Meta dataset has {len(df)} rows; need at least "
-            f"{MIN_META_DATASET_ROWS} rows before training."
+            f"Meta dataset too small ({len(df)} rows). Need at least "
+            f"{MIN_META_DATASET_ROWS} rows."
         )
 
-    missing = [col for col in MODEL_FEATURE_COLUMNS if col not in df.columns]
+    missing = [col for col in META_FEATURE_COLUMNS if col not in df.columns]
     if missing:
         raise RuntimeError(f"Meta dataset is missing feature columns: {missing}")
 
-    x = df[MODEL_FEATURE_COLUMNS]
+    x = df[META_FEATURE_COLUMNS]
     y = df["target"]
 
     split = int(len(df) * 0.7)
