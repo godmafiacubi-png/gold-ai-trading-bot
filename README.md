@@ -6,12 +6,12 @@ This project is educational/research-focused. It starts with simulation mode ena
 
 ## Setup
 
-Use Python 3.11 or 3.12 for the research pipeline. Some ML packages may not have wheels for brand-new Python releases, and this repo expects the packages in `requirements.txt` to be installed in the active environment.
+Use Python 3.11 for the research pipeline. Some ML packages may not have wheels for brand-new Python releases, and this repo expects the packages in `requirements.txt` to be installed in the active environment.
 
 ### macOS / Linux
 
 ```bash
-python3.12 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
@@ -21,7 +21,7 @@ python main.py --config config.yaml
 ### Windows PowerShell
 
 ```powershell
-py -3.12 -m venv .venv
+py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
