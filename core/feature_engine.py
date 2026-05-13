@@ -42,7 +42,7 @@ class FeatureEngine:
             lookback=int(self.config["strategy"].get("fvg_retest_lookback", 20)),
         )
 
-        out = add_session_filter(out)
+        out = add_session_filter(out, self.config)
 
         out = add_regime_filter(
             out,
