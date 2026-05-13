@@ -19,6 +19,7 @@ def run_case(features, config, name, params):
         point_value=params.get("point_value", 0.001),
         contract_size=params.get("contract_size", 100.0),
         seed=params.get("seed", 42),
+        config=config,
     )
 
     result = bt.run(features)
@@ -35,81 +36,20 @@ def apply_spread_multiplier(df, multiplier):
 
 def stress_test(features, config):
     cases = [
-        {
-            "name": "base",
-            "spread_mult": 1.0,
-            "params": {
-                "rr": 2.0,
-                "slippage_points_min": 5,
-                "slippage_points_max": 30,
-            },
-        },
-        {
-            "name": "spread_x1_5",
-            "spread_mult": 1.5,
-            "params": {
-                "rr": 2.0,
-                "slippage_points_min": 5,
-                "slippage_points_max": 30,
-            },
-        },
-        {
-            "name": "spread_x2",
-            "spread_mult": 2.0,
-            "params": {
-                "rr": 2.0,
-                "slippage_points_min": 5,
-                "slippage_points_max": 30,
-            },
-        },
-        {
-            "name": "slippage_30_80",
-            "spread_mult": 1.0,
-            "params": {
-                "rr": 2.0,
-                "slippage_points_min": 30,
-                "slippage_points_max": 80,
-            },
-        },
-        {
-            "name": "harsh_cost",
-            "spread_mult": 2.0,
-            "params": {
-                "rr": 2.0,
-                "slippage_points_min": 30,
-                "slippage_points_max": 80,
-            },
-        },
-        {
-            "name": "rr_1_5",
-            "spread_mult": 1.0,
-            "params": {
-                "rr": 1.5,
-                "slippage_points_min": 5,
-                "slippage_points_max": 30,
-            },
-        },
-        {
-            "name": "rr_2_5",
-            "spread_mult": 1.0,
-            "params": {
-                "rr": 2.5,
-                "slippage_points_min": 5,
-                "slippage_points_max": 30,
-            },
-        },
+        {"name": "base", "spread_mult": 1.0, "params": {"rr": 2.0, "slippage_points_min": 5, "slippage_points_max": 30}},
+        {"name": "spread_x1_5", "spread_mult": 1.5, "params": {"rr": 2.0, "slippage_points_min": 5, "slippage_points_max": 30}},
+        {"name": "spread_x2", "spread_mult": 2.0, "params": {"rr": 2.0, "slippage_points_min": 5, "slippage_points_max": 30}},
+        {"name": "slippage_30_80", "spread_mult": 1.0, "params": {"rr": 2.0, "slippage_points_min": 30, "slippage_points_max": 80}},
+        {"name": "harsh_cost", "spread_mult": 2.0, "params": {"rr": 2.0, "slippage_points_min": 30, "slippage_points_max": 80}},
+        {"name": "rr_1_5", "spread_mult": 1.0, "params": {"rr": 1.5, "slippage_points_min": 5, "slippage_points_max": 30}},
+        {"name": "rr_2_5", "spread_mult": 1.0, "params": {"rr": 2.5, "slippage_points_min": 5, "slippage_points_max": 30}},
     ]
 
     results = []
 
     for case in cases:
         case_features = apply_spread_multiplier(features, case["spread_mult"])
-        result = run_case(
-            case_features,
-            config,
-            case["name"],
-            case["params"],
-        )
+        result = run_case(case_features, config, case["name"], case["params"])
         results.append(result)
 
     return pd.DataFrame(results)
@@ -117,13 +57,11 @@ def stress_test(features, config):
 
 def walk_forward_test(features, config, folds=5):
     results = []
-
     chunk_size = len(features) // folds
 
     for i in range(folds):
         start = i * chunk_size
         end = (i + 1) * chunk_size if i < folds - 1 else len(features)
-
         fold_df = features.iloc[start:end].copy()
 
         if len(fold_df) < 50:
@@ -133,11 +71,7 @@ def walk_forward_test(features, config, folds=5):
             fold_df,
             config,
             f"walk_forward_fold_{i + 1}",
-            {
-                "rr": 2.0,
-                "slippage_points_min": 5,
-                "slippage_points_max": 30,
-            },
+            {"rr": 2.0, "slippage_points_min": 5, "slippage_points_max": 30},
         )
 
         result["start_time"] = fold_df.iloc[0].get("time", start)
@@ -177,9 +111,9 @@ def main():
     features = FeatureEngine(config).build(raw)
 
     if config.get("htf", {}).get("enabled", False):
-         htf_raw = pd.read_csv("data/history_h1.csv")
-         htf_context = HTFContextEngine(config).build(htf_raw)
-         features = HTFContextEngine(config).merge_to_ltf(features, htf_context)
+        htf_raw = pd.read_csv("data/history_h1.csv")
+        htf_context = HTFContextEngine(config).build(htf_raw)
+        features = HTFContextEngine(config).merge_to_ltf(features, htf_context)
 
     stress_df = stress_test(features, config)
     walk_df = walk_forward_test(features, config, folds=3)
