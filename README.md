@@ -6,11 +6,52 @@ This project is educational/research-focused. It starts with simulation mode ena
 
 ## Setup
 
+Use Python 3.11 or 3.12 for the research pipeline. Some ML packages may not have wheels for brand-new Python releases, and this repo expects the packages in `requirements.txt` to be installed in the active environment.
+
+### macOS / Linux
+
 ```bash
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 python main.py --config config.yaml
+```
+
+### Windows PowerShell
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python main.py --config config.yaml
+```
+
+### Dependency / proxy troubleshooting
+
+If commands fail with errors such as `ModuleNotFoundError: No module named 'yaml'`, `No module named 'pandas'`, `No module named 'joblib'`, or `No module named 'lightgbm'`, the active Python environment is missing dependencies. Re-activate the virtual environment and run:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+If installation fails with `403 Forbidden` from `pip`, the issue is network/proxy access to PyPI rather than the trading-bot code. Run the install from a network that can reach PyPI, configure your company proxy/index URL, or use a prebuilt environment that already contains the packages in `requirements.txt`. Example proxy/index configuration:
+
+```bash
+python -m pip install --proxy http://USER:PASS@HOST:PORT -r requirements.txt
+# or, if your organization provides an internal package mirror:
+python -m pip install --index-url https://YOUR_INTERNAL_PYPI/simple -r requirements.txt
+```
+
+After dependencies are installed, rerun the ML validation pipeline:
+
+```bash
+python run_stress_walkforward.py
+python -m ml.build_meta_dataset
+python -m ml.train_meta_filter
+python run_backtest_with_ml.py
+python run_walkforward_with_ml.py
 ```
 
 ## Modules
