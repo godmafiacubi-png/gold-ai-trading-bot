@@ -7,6 +7,7 @@ from core.feature_engine import FeatureEngine
 from strategies.ict_smc_strategy import ICTSMCStrategy
 from core.risk_manager import RiskManager
 from core.execution_engine import ExecutionEngine
+from ml.hybrid_ai import HybridAIEngine
 
 
 def load_config(path: str) -> dict:
@@ -32,7 +33,8 @@ def main() -> None:
         return
 
     features = FeatureEngine(config).build(data)
-    signal = ICTSMCStrategy(config).generate_signal(features)
+    base_signal = ICTSMCStrategy(config).generate_signal(features)
+    signal = HybridAIEngine(config).evaluate(features, base_signal)
 
     risk = RiskManager(config)
     order = risk.prepare_order(signal, features.iloc[-1])

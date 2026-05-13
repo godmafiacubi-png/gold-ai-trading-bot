@@ -11,6 +11,10 @@ class ExecutionEngine:
         if order.get("action") == "NO_TRADE":
             return {"status": "SKIPPED", "order": order}
 
+        execution_plan = order.get("execution_plan") or {}
+        if execution_plan:
+            self.logger.info("Execution plan: %s", execution_plan)
+
         if self.dry_run:
             self.logger.info("DRY RUN order: %s", order)
             return {"status": "DRY_RUN", "order": order}
