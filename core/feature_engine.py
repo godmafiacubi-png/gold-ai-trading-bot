@@ -52,8 +52,8 @@ class FeatureEngine:
         out = add_advanced_regime_filters(out)
         out = add_ict_quality_filters(out, self.config)
 
-        out["fvg_low"] = out["fvg_low"].fillna(0)
-        out["fvg_high"] = out["fvg_high"].fillna(0)
+        out["fvg_low"] = pd.to_numeric(out["fvg_low"], errors="coerce").fillna(0.0)
+        out["fvg_high"] = pd.to_numeric(out["fvg_high"], errors="coerce").fillna(0.0)
 
         return out.dropna(subset=["return", "atr"]).reset_index(drop=True)
 
