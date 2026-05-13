@@ -4,15 +4,13 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from sklearn.metrics import classification_report, roc_auc_score
-from sklearn.model_selection import TimeSeriesSplit
 
 try:
     from lightgbm import LGBMClassifier
 except Exception:
     LGBMClassifier = None
 
-
-DROP_COLUMNS = ["target", "pnl", "r_multiple"]
+from ml.meta_features import MIN_META_DATASET_ROWS, MODEL_FEATURE_COLUMNS
 
 
 def main():
@@ -21,10 +19,17 @@ def main():
 
     df = pd.read_csv("data/meta_dataset.csv")
 
-    if len(df) < 100:
-        print("WARNING: dataset is small. ML results may be unstable.")
+    if len(df) < MIN_META_DATASET_ROWS:
+        raise RuntimeError(
+            f"Meta dataset has {len(df)} rows; need at least "
+            f"{MIN_META_DATASET_ROWS} rows before training."
+        )
 
-    x = df.drop(columns=DROP_COLUMNS)
+    missing = [col for col in MODEL_FEATURE_COLUMNS if col not in df.columns]
+    if missing:
+        raise RuntimeError(f"Meta dataset is missing feature columns: {missing}")
+
+    x = df[MODEL_FEATURE_COLUMNS]
     y = df["target"]
 
     split = int(len(df) * 0.7)

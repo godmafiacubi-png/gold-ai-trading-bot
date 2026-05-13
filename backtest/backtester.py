@@ -6,6 +6,8 @@ from pathlib import Path
 import pandas as pd
 import joblib
 
+from ml.meta_features import MODEL_FEATURE_COLUMNS, build_meta_feature_record
+
 
 @dataclass
 class TradeResult:
@@ -238,38 +240,8 @@ class Backtester:
         if self.meta_model is None:
             return 1.0
 
-        feature_columns = [
-            "return",
-            "range",
-            "body",
-            "atr",
-            "atr_pct",
-            "ema_slope",
-            "sweep_count_5",
-            "spread",
-            "bullish_sweep",
-            "bearish_sweep",
-            "bullish_bos",
-            "bearish_bos",
-            "bullish_fvg_retest",
-            "bearish_fvg_retest",
-            "long_regime_ok",
-            "short_regime_ok",
-            "side",
-        ]
-
-        record = {}
-        for col in feature_columns:
-            if col == "side":
-                record[col] = 1 if signal == "BUY" else -1
-                continue
-
-            value = row.get(col, 0)
-            if isinstance(value, bool):
-                value = int(value)
-            record[col] = value
-
-        x = pd.DataFrame([record])
+        record = build_meta_feature_record(row, signal)
+        x = pd.DataFrame([record], columns=MODEL_FEATURE_COLUMNS)
         return float(self.meta_model.predict_proba(x)[0][1])
 
     def _simulate_trade(

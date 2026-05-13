@@ -8,39 +8,7 @@ from core.feature_engine import FeatureEngine
 from core.htf_context import HTFContextEngine
 from backtest.backtester import Backtester
 
-
-FEATURE_COLUMNS = [
-    # price / volatility
-    "return",
-    "range",
-    "body",
-    "atr",
-    "atr_pct",
-    "ema_slope",
-    "sweep_count_5",
-    "spread",
-
-    # LTF structure
-    "bullish_sweep",
-    "bearish_sweep",
-    "bullish_bos",
-    "bearish_bos",
-    "bullish_fvg_retest",
-    "bearish_fvg_retest",
-    "long_regime_ok",
-    "short_regime_ok",
-    "long_quality_ok",
-    "short_quality_ok",
-
-    # HTF context as ML features, not hard filters
-    "htf_trend",
-    "htf_premium",
-    "htf_discount",
-    "recent_htf_bullish_sweep",
-    "recent_htf_bearish_sweep",
-    "recent_htf_bullish_bos",
-    "recent_htf_bearish_bos",
-]
+from ml.meta_features import FEATURE_COLUMNS, normalize_meta_record
 
 
 def load_config() -> dict:
@@ -92,23 +60,6 @@ def run_backtest_for_labels(config: dict, features: pd.DataFrame) -> pd.DataFram
     return pd.read_csv(trades_path)
 
 
-def normalize_record(record: dict) -> dict:
-    # Convert bools to ints
-    for key, value in list(record.items()):
-        if isinstance(value, bool):
-            record[key] = int(value)
-
-    # Encode HTF trend
-    trend = record.get("htf_trend", "neutral")
-    record["htf_trend"] = {
-        "bullish": 1,
-        "bearish": -1,
-        "neutral": 0,
-    }.get(str(trend), 0)
-
-    return record
-
-
 def main() -> None:
     config = load_config()
     features = build_features(config)
@@ -136,7 +87,7 @@ def main() -> None:
         record["r_multiple"] = trade["r_multiple"]
         record["target"] = 1 if trade["pnl"] > 0 else 0
 
-        record = normalize_record(record)
+        record = normalize_meta_record(record)
         rows.append(record)
 
     dataset = pd.DataFrame(rows)
